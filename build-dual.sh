@@ -2,16 +2,16 @@
 
 set -e -u
 
-iso_name=boonux
-iso_label="BOONUX_$(date +%Y%m)"
+iso_name=archlinux
+iso_label="ARCH_$(date +%Y%m)"
 iso_version=$(date +%Y.%m.%d)
-install_dir=boonux
+install_dir=arch
 work_dir=work
 out_dir=out
 gpg_key=
 
-arch=x86_64
-verbose="-v"
+arch=$(uname -m)
+verbose=""
 script_path=$(readlink -f ${0%/*})
 
 _usage ()
@@ -213,7 +213,7 @@ make_prepare() {
 
 # Build ISO
 make_iso() {
-    mkarchiso ${verbose} -w "${work_dir}" -D "${install_dir}" -L "${iso_label}" -o "${out_dir}" iso "${iso_name}-${iso_version}-${arch}.iso"
+    mkarchiso ${verbose} -w "${work_dir}" -D "${install_dir}" -L "${iso_label}" -o "${out_dir}" iso "${iso_name}-${iso_version}-dual.iso"
 }
 
 if [[ ${EUID} -ne 0 ]]; then
@@ -247,16 +247,33 @@ done
 mkdir -p ${work_dir}
 
 run_once make_pacman_conf
-run_once make_basefs
-run_once make_packages
+
+# Do all stuff for each airootfs
+for arch in i686 x86_64; do
+    run_once make_basefs
+    run_once make_packages
+done
+
 run_once make_packages_efi
-run_once make_setup_mkinitcpio
-run_once make_customize_airootfs
-run_once make_boot
+
+for arch in i686 x86_64; do
+    run_once make_setup_mkinitcpio
+    run_once make_customize_airootfs
+done
+
+for arch in i686 x86_64; do
+    run_once make_boot
+done
+
+# Do all stuff for "iso"
 run_once make_boot_extra
 run_once make_syslinux
 run_once make_isolinux
 run_once make_efi
 run_once make_efiboot
-run_once make_prepare
+
+for arch in i686 x86_64; do
+    run_once make_prepare
+done
+
 run_once make_iso
