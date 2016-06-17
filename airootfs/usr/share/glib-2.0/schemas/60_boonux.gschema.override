@@ -1,0 +1,79 @@
+[org.gnome.desktop.background]
+picture-options='zoom'
+picture-uri='file:///usr/share/backgrounds/boonux/boonux-wallpaper-bw.jpg'
+primary-color='#555555'
+secondary-color='#555555'
+
+[org.gnome.desktop.screensaver]
+picture-options='zoom'
+picture-uri='file:///usr/share/backgrounds/boonux/boonux-wallpaper-bw.jpg'
+primary-color='#555555'
+secondary-color='#555555'
+
+[org.gnome.desktop.input-sources]
+per-window=false
+sources=[('xkb', 'us'), ('xkb', 'th+tis')]
+xkb-options=['terminate:ctrl_alt_bksp']
+
+
+[org.gnome.desktop.interface]
+icon-theme='Faenza-Ambiance'
+gtk-theme='Adwaita'
+font-name='Boon 12'
+document-font-name='Boon 12'
+monospace-font-name='Fira Mono 12'
+
+[org.gnome.desktop.peripherals.touchpad]
+tap-to-click=true
+natural-scroll=true
+
+[org.gnome.desktop.wm.keybindings]
+toggle-fullscreen=['F11']
+minimize=['<Super>h']
+switch-input-source=['<Super>space']
+
+[org.gnome.desktop.wm.preferences]
+theme='Adwaita'
+titlebar-font='Boon Semi-Bold 10'
+
+[org.gnome.login-screen]
+logo='/usr/share/pixmaps/boonux-logo.svg'
+fallback-logo='/usr/share/pixmaps/boonux-logo-sq.svg'
+
+[org.gnome.gedit.preferences.editor]
+scheme='oblivion'
+tabs-size=4
+display-line-numbers=true
+highlight-current-line=true
+
+[org.gnome.shell]
+development-tools=true
+enabled-extensions=['user-theme@gnome-shell-extensions.gcampax.github.com', 'apps-menu@gnome-shell-extensions.gcampax.github.com']
+favorite-apps=['org.gnome.Nautilus.desktop', 'com.gexperts.Terminix.desktop', 'firefox.desktop', 'fontforge.desktop', 'org.gnome.font-viewer.desktop', 'inkscape.desktop', 'gimp.desktop', 'gnome-control-center.desktop', 'gnome-tweak-tool.desktop']
+
+[org.gnome.shell.extensions.user-theme]
+name='Boonux'
+
+[org.gnome.software]
+download-updates=false
+
+[com.gexperts.Terminix.Settings]
+disable-csd=true
+auto-hide-mouse=true
+enable-transparency=true
+terminal-title-style='none'
+
+[com.gexperts.Terminix.Profile]
+visible-name='Boonux'
+default-size-columns=120
+default-size-rows=40
+font='Fira Mono 12'
+background-transparency-percent=10
+dim-transparency-percent=10
+foreground-color='#DDDDDD'
+background-color='#222222'
+show-scrollbar=false
+scroll-on-output=true
+login-shell=true
+use-theme-colors=false
+

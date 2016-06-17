@@ -5,12 +5,10 @@ set -e -u
 user="boonux"
 
 echo "Initiate pacman keyrings"
-if [[ ! -e "/etc/pacman.d/gnupg/" ]]; then
-	pacman-key --init
-	pacman-key --populate archlinux
-	pacman-key -r 962DDE58
-	pacman-key --lsign-key 962DDE58
-fi 
+pacman-key --init
+pacman-key --populate archlinux
+pacman-key -r 962DDE58
+pacman-key --lsign-key 962DDE58
 
 echo "Copy /etc/skel to /root"
 cp -aT /etc/skel/ /root/
@@ -19,10 +17,12 @@ echo "root:${user}" | chpasswd -m
 
 echo "Generate locales"
 sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
+sed -i 's/#\(th_TH\.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
+echo "LANG=th_TH.UTF-8" > /etc/locale.conf
 
 echo "Set local timezone to Asia/Bangkok"
-ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+ln -sf /usr/share/zoneinfo/Asia/Bangkok /etc/localtime
 
 sed -i 's/#\(PermitRootLogin \).\+/\1yes/' /etc/ssh/sshd_config
 sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
@@ -69,7 +69,8 @@ localepurge
 glib-compile-schemas /usr/share/glib-2.0/schemas/
 
 # Enable display & network managers
-#systemctl enable vbox-guest.service
+systemctl enable choose-mirror.service
+systemctl enable vbox-guest.service
 systemctl enable lightdm.service
 systemctl enable dhcpcd.service
 systemctl enable NetworkManager.service

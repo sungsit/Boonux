@@ -1,0 +1,11 @@
+[Unit]
+Description=Load VirtualBox Guest Modules
+ConditionVirtualization=oracle
+Requires=systemd-modules-load.service
+Before=systemd-user-sessions.service vbox-guest.service display-manager.service
+
+[Service]
+ExecStart=/usr/bin/modprobe -a vboxguest vboxsf vboxvideo
+
+[Install]
+WantedBy=multi-user.target

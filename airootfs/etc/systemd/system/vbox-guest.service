@@ -1,0 +1,13 @@
+[Unit]
+Description=VirtualBox Guest Service
+ConditionVirtualization=oracle
+Requires=vbox-modules-load.service systemd-modules-load.service
+Before=display-manager.service
+After=vbox-modules-load.service
+
+[Service]
+ExecStart=/usr/bin/VBoxService -f
+
+[Install]
+WantedBy=multi-user.target
+

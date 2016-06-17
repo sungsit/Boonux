@@ -13,6 +13,7 @@ gpg_key=
 arch=x86_64
 verbose="-v"
 script_path=$(readlink -f ${0%/*})
+pacman_conf="${script_path}/airootfs/etc/pacman.conf"
 
 _usage ()
 {
@@ -48,18 +49,40 @@ run_once() {
 make_pacman_conf() {
     local _cache_dirs
     _cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
-    sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${_cache_dirs[@]})|g" ${script_path}/pacman.conf > ${work_dir}/pacman.conf
+    sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${_cache_dirs[@]})|g" ${script_path}/airootfs/etc/pacman.conf > ${work_dir}/pacman.conf
+}
+
+# All required fonts (airootfs)
+make_fonts() {
+	fontuni_dir=${script_path}/airootfs/usr/share/fonts/FontUni
+    mkdir -p ${fontuni_dir}
+     
+	if [ ! "$(ls -A ${fontuni_dir})" ]; then
+		cd ${fontuni_dir}
+		wget -c https://github.com/fontuni/boon/releases/download/v2.0/Boon-v2.0-ttf.zip
+    	wget -c https://github.com/fontuni/boontook/releases/download/v2.0.1/BoonTook-v2.0.1-ttf.zip
+    	wget -c https://github.com/fontuni/boonjot/releases/download/v1.0.1/BoonJot-v1.0.1-ttf.zip
+    
+    	for _font in "Boon-v2.0-ttf" "BoonTook-v2.0.1-ttf" "BoonJot-v1.0.1-ttf"; do
+        	unzip -o ${_font}.zip 
+        	mv ttf ${_font}
+        	rm ${_font}.zip
+    	done
+    	cd ${script_path}
+	fi
 }
 
 # Base installation, plus needed packages (airootfs)
 make_basefs() {
     setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" init
     setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -p "haveged intel-ucode memtest86+ mkinitcpio-nfs-utils nbd zsh" install
+    #setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r 'pacman-key --init && pacman-key --populate archlinux' run
+    #setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r 'pacman-key -r 962DDE58 && pacman-key --lsign-key 962DDE58' run
 }
 
 # Additional packages (airootfs)
 make_packages() {
-    setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -p "$(grep -h -v ^# ${script_path}/packages.{both,${arch}})" install
+    setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -p "$(grep -h -v ^# ${script_path}/packages.txt)" install
 }
 
 # Needed packages for x86_64 EFI boot
@@ -79,28 +102,16 @@ make_setup_mkinitcpio() {
     sed -i "s|/usr/lib/initcpio/|/etc/initcpio/|g" ${work_dir}/${arch}/airootfs/etc/initcpio/install/archiso_shutdown
     cp /usr/lib/initcpio/install/archiso_kms ${work_dir}/${arch}/airootfs/etc/initcpio/install
     cp /usr/lib/initcpio/archiso_shutdown ${work_dir}/${arch}/airootfs/etc/initcpio
-    cp ${script_path}/mkinitcpio.conf ${work_dir}/${arch}/airootfs/etc/mkinitcpio-archiso.conf
+    cp -f ${script_path}/airootfs/etc/mkinitcpio.conf ${work_dir}/${arch}/airootfs/etc/.
     gnupg_fd=
     if [[ ${gpg_key} ]]; then
       gpg --export ${gpg_key} >${work_dir}/gpgkey
       exec 17<>${work_dir}/gpgkey
     fi
-    ARCHISO_GNUPG_FD=${gpg_key:+17} setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r 'mkinitcpio -c /etc/mkinitcpio-archiso.conf -k /boot/vmlinuz-linux -g /boot/archiso.img' run
+    ARCHISO_GNUPG_FD=${gpg_key:+17} setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r 'mkinitcpio -c /etc/mkinitcpio.conf -k /boot/vmlinuz-linux -g /boot/archiso.img' run
     if [[ ${gpg_key} ]]; then
       exec 17<&-
     fi
-}
-
-# Customize installation (airootfs)
-make_customize_airootfs() {
-    cp -af ${script_path}/airootfs ${work_dir}/${arch}
-
-    curl -o ${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist 'https://www.archlinux.org/mirrorlist/?country=all&protocol=http&use_mirror_status=on'
-
-    lynx -dump -nolist 'https://wiki.archlinux.org/index.php/Installation_Guide?action=render' >> ${work_dir}/${arch}/airootfs/root/install.txt
-
-    setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r '/root/customize_airootfs.sh' run
-    rm ${work_dir}/${arch}/airootfs/root/customize_airootfs.sh
 }
 
 # Prepare kernel/initramfs ${install_dir}/boot/
@@ -202,6 +213,13 @@ make_efiboot() {
     umount -d ${work_dir}/efiboot
 }
 
+# Customize installation for Thai language (airootfs)
+make_customize_airootfs_thai() {
+    cp -af ${script_path}/airootfs ${work_dir}/${arch}
+    setarch ${arch} mkarchiso ${verbose} -w "${work_dir}/${arch}" -C "${work_dir}/pacman.conf" -D "${install_dir}" -r '/root/customize_airootfs_thai.sh' run
+    rm ${work_dir}/${arch}/airootfs/root/customize_airootfs_thai.sh
+}
+
 # Build airootfs filesystem image
 make_prepare() {
     cp -a -l -f ${work_dir}/${arch}/airootfs ${work_dir}
@@ -247,16 +265,20 @@ done
 mkdir -p ${work_dir}
 
 run_once make_pacman_conf
+run_once make_fonts
 run_once make_basefs
 run_once make_packages
 run_once make_packages_efi
 run_once make_setup_mkinitcpio
-run_once make_customize_airootfs
+
 run_once make_boot
 run_once make_boot_extra
 run_once make_syslinux
 run_once make_isolinux
 run_once make_efi
 run_once make_efiboot
+
+run_once make_customize_airootfs_thai
 run_once make_prepare
 run_once make_iso
+
