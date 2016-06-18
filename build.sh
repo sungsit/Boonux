@@ -45,6 +45,12 @@ run_once() {
     fi
 }
 
+# Install required packages on running host
+make_build_env() {
+  pacman -Syyu 
+  pacman --noconfirm --needed -S $(grep -h -v ^# ${script_path}/packages.txt)
+}
+
 # Setup custom pacman.conf with current cache directories.
 make_pacman_conf() {
     local _cache_dirs
@@ -264,6 +270,7 @@ done
 
 mkdir -p ${work_dir}
 
+run_once make_build_env
 run_once make_pacman_conf
 run_once make_fonts
 run_once make_basefs

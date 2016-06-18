@@ -1,0 +1,21 @@
+# Minimal boounux build env packages
+
+arch-install-scripts
+archiso
+base-devel
+bash-completion
+btrfs-progs
+dhclient
+dosfstools
+git
+grub
+mtools
+ntp
+openssh
+rsync
+sudo
+unzip
+wget
+yaourt
+zip
+
