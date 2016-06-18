@@ -78,6 +78,7 @@ zd1211-firmware
 # devel
 
 base-devel
+archiso
 lib32-glibc
 bash-completion
 yaourt
